@@ -139,6 +139,23 @@ esp_err_t mcpwm_comparator_set_compare_value(mcpwm_cmpr_handle_t cmpr, uint32_t 
     return ESP_OK;
 }
 
+esp_err_t mcpwm_comparator_set_compare_value_isr(mcpwm_cmpr_handle_t cmpr, uint32_t cmp_ticks)
+{
+    //ESP_RETURN_ON_FALSE(cmpr, ESP_ERR_INVALID_ARG, TAG, "invalid argument");
+    mcpwm_oper_t *oper = cmpr->oper;
+    mcpwm_group_t *group = oper->group;
+    //mcpwm_timer_t *timer = oper->timer;
+    //ESP_RETURN_ON_FALSE(timer, ESP_ERR_INVALID_STATE, TAG, "timer and operator are not connected");
+    //ESP_RETURN_ON_FALSE(cmp_ticks < timer->peak_ticks, ESP_ERR_INVALID_ARG, TAG, "compare value out of range");
+
+    portENTER_CRITICAL_SAFE(&cmpr->spinlock);
+    mcpwm_ll_operator_set_compare_value(group->hal.dev, oper->oper_id, cmpr->cmpr_id, cmp_ticks);
+    portEXIT_CRITICAL_SAFE(&cmpr->spinlock);
+
+    cmpr->compare_ticks = cmp_ticks;
+    return ESP_OK;
+}
+
 esp_err_t mcpwm_comparator_register_event_callbacks(mcpwm_cmpr_handle_t cmpr, const mcpwm_comparator_event_callbacks_t *cbs, void *user_data)
 {
     ESP_RETURN_ON_FALSE(cmpr && cbs, ESP_ERR_INVALID_ARG, TAG, "invalid argument");
